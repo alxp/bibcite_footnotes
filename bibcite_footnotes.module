@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Contains bibcite_footnotes.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function bibcite_footnotes_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the bibcite_footnotes module.
+    case 'help.page.bibcite_footnotes':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Inline footnote links for BibCite References') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bibcite_footnotes_theme() {
+  return [
+    'bibcite_footnotes' => [
+      'render element' => 'children',
+    ],
+  ];
+}
