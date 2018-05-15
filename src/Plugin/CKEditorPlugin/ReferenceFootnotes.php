@@ -85,11 +85,11 @@ class ReferenceFootnotes extends CKEditorPluginBase {
     $view_builder = \Drupal::entityTypeManager()->getViewBuilder('bibcite_reference');
     $options = [];
     foreach($reference_storage as $ref_id => $ref_item) {
-      print_r($ref_id);
       $build = $view_builder->view($ref_item, 'citation');
-      $output = trim(strip_tags(render($build)));
+      $render = render($build);
+      $output = trim(strip_tags($render));
       //$options[] = [$output, $ref_id];
-      $options[] = [$output, $output];
+      $options[] = [$output, "[bibcite_reference:$ref_id]"];
     }
 
     return ['referenceFootnotes_list' => $options];

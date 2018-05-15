@@ -33,3 +33,56 @@ function bibcite_footnotes_theme() {
     ],
   ];
 }
+
+function bibcite_footnotes_theme_registry_alter(&$theme_registry) {
+  $theme_registry['footnote_list']['function'] = 'bibcite_footnotes_theme_footnote_list';
+}
+
+function bibcite_footnotes_theme_footnote_list($footnotes) {
+  // @todo: change this ugly array for arguments in the function.
+  $footnotes = $footnotes['footnotes']['#footnotes'];
+  $str = '<ul class="footnotes">';
+  // Drupal 7 requires we use "render element" which just introduces a wrapper
+  // around the old array.
+  // $footnotes = $footnotes['footnotes'];
+  // loop through the footnotes.
+  $view_builder = \Drupal::entityTypeManager()->getViewBuilder('bibcite_reference');
+  foreach ($footnotes as $fn) {
+    if (!is_array($fn['ref_id'])) {
+      // Output normal footnote.
+      $str .= '<li class="footnote" id="' . $fn['fn_id'] . '"><a class="footnote-label" href="#' . $fn['ref_id'] . '">' . $fn['value'] . '.</a> ';
+      preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
+      $reference_entity_id = $matches[1];
+      if (!empty($reference_entity_id)) {
+        $reference_storage = \Drupal::entityTypeManager()
+          ->getStorage('bibcite_reference')
+          ->load($reference_entity_id);
+
+        $build = $view_builder->view($reference_storage, 'citation');
+        $render = render($build);
+
+        $str .= $render . "</li>\n";
+      }
+      else {
+        $str .= $fn['text'] . "</li>\n";
+      }
+    }
+    else {
+      // Output footnote that has more than one reference to it in the body.
+      // The only difference is to insert backlinks to all references.
+      // Helper: we need to enumerate a, b, c...
+      $abc = str_split("abcdefghijklmnopqrstuvwxyz");
+      $i = 0;
+
+      $str .= '<li class="footnote" id="' . $fn['fn_id'] . '"><a href="#' . $fn['ref_id'][0] . '" class="footnote-label">' . $fn['value'] . '.</a> ';
+      foreach ($fn['ref_id'] as $ref) {
+        $str .= '<a class="footnote-multi" href="#' . $ref . '">' . $abc[$i] . '.</a> ';
+        $i++;
+      }
+      $str .= $fn['text'] . "</li>\n";
+    }
+  }
+  $str .= "</ul>\nThat's all, folks";
+  return $str;
+
+}
