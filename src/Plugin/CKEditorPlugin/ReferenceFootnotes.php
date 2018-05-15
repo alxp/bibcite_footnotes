@@ -88,7 +88,8 @@ class ReferenceFootnotes extends CKEditorPluginBase {
       print_r($ref_id);
       $build = $view_builder->view($ref_item, 'citation');
       $output = trim(strip_tags(render($build)));
-      $options[] = [$output, $ref_id];
+      //$options[] = [$output, $ref_id];
+      $options[] = [$output, $output];
     }
 
     return ['referenceFootnotes_list' => $options];
