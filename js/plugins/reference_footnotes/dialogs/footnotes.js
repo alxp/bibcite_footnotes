@@ -20,6 +20,17 @@
                                     if (isEdit)
                                         this.setValue(element.getText());
                                 }
+                            },
+                            {
+                                id: 'value',
+                                type: 'text',
+                                label: Drupal.t('Value :'),
+                                labelLayout: 'horizontal',
+                                style: 'float:left;width:100px;',
+                                setup: function (element) {
+                                    if (isEdit)
+                                        this.setValue(element.getAttribute('value'));
+                                }
                             }
                         ],
                 }
@@ -32,7 +43,7 @@
                 this.setupContent( this.realObj );
             },
             onOk : function() {
-                CKEDITOR.plugins.reference_footnotes.createFootnote( editor, this.realObj, this.getValueOf('info', 'reference_footnote'), null);
+                CKEDITOR.plugins.reference_footnotes.createFootnote( editor, this.realObj, this.getValueOf('info', 'reference_footnote'), this.getValueOf('info', 'value'));
                 delete this.fakeObj;
                 delete this.realObj;
             }
