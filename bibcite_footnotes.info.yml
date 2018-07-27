@@ -2,7 +2,8 @@ name: 'BibCite Footnotes'
 type: module
 description: 'Inline footnote links for BibCite References'
 core: 8.x
-package: 'Bibcite'
+package: 'Bibliography & Citation'
 dependencies:
-  - bibcite
-  - footnotes
+  - bibcite:bibcite
+  - bibcite:bibcite_entity
+  - footnotes:footnotes
