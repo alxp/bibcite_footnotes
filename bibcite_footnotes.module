@@ -82,7 +82,7 @@ function bibcite_footnotes_theme_footnote_list($footnotes) {
       $str .= $fn['text'] . "</li>\n";
     }
   }
-  $str .= "</ul>\nThat's all, folks";
+
   return $str;
 
 }
