@@ -21,7 +21,7 @@
                 editor.addCommand('createreferencefootnotes', new CKEDITOR.dialogCommand('createreferencefootnotes', {
                     allowedContent: 'fn[value]'
                 }));
-                editor.addCommand('editfootnotes', new CKEDITOR.dialogCommand('editfootnotes', {
+                editor.addCommand('editreferencefootnotes', new CKEDITOR.dialogCommand('editreferencefootnotes', {
                     allowedContent: 'fn[value]'
                 }));
 
@@ -39,7 +39,7 @@
                     editor.addMenuItems({
                         footnotes: {
                             label: Drupal.t('Edit footnote'),
-                            command: 'editfootnotes',
+                            command: 'editreferencefootnotes',
                             icon: 'reference_footnotes',
                             group: 'reference_footnotes'
                         }
@@ -56,11 +56,11 @@
 
                 editor.on( 'doubleclick', function( evt ) {
                     if ( CKEDITOR.plugins.footnotes.getSelectedFootnote( editor ) )
-                        evt.data.dialog = 'editfootnotes';
+                        evt.data.dialog = 'editreferencefootnotes';
                 });
 
                 CKEDITOR.dialog.add( 'createreferencefootnotes', this.path + 'dialogs/footnotes.js' );
-                CKEDITOR.dialog.add( 'editfootnotes', this.path + 'dialogs/footnotes.js' );
+                CKEDITOR.dialog.add( 'editreferencefootnotes', this.path + 'dialogs/footnotes.js' );
             },
             afterInit : function( editor ) {
                 var dataProcessor = editor.dataProcessor,

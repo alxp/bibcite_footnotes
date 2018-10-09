@@ -53,7 +53,7 @@
     CKEDITOR.dialog.add( 'createreferencefootnotes', function( editor ) {
         return referenceFootnotesDialog( editor );
     });
-    CKEDITOR.dialog.add( 'editfootnotes', function( editor ) {
+    CKEDITOR.dialog.add( 'editreferencefootnotes', function( editor ) {
         return referenceFootnotesDialog( editor, 1 );
     });
 })();

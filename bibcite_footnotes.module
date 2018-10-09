@@ -35,12 +35,27 @@ function bibcite_footnotes_theme() {
 }
 
 function bibcite_footnotes_theme_registry_alter(&$theme_registry) {
-  $theme_registry['footnote_list']['function'] = 'bibcite_footnotes_theme_footnote_list';
+  unset($theme_registry['footnote_list']['function']);
+//  $theme_registry['footnote_list']['function'] = 'bibcite_footnotes_theme_footnote_list';
+  $theme_registry['footnote_list']['path'] = drupal_get_path('module', 'bibcite_footnotes') . '/templates';
+  $theme_registry['footnote_list']['template'] = 'footnote-list';
+  $theme_registry['footnote_list']['variables']['notes'] = [];
+  $theme_registry['footnote_list']['variables']['references'] = [];
 }
 
 function bibcite_footnotes_theme_footnote_list($footnotes) {
   // @todo: change this ugly array for arguments in the function.
   $footnotes = $footnotes['footnotes']['#footnotes'];
+  ksm($footnotes);
+  $notes = [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'Notes',
+    '#attributes' => ['class' => ''],
+    '#wrapper_attributes' => ['class' => 'container'],
+  ];
+
+//  return drupal_render($content);
   $str = '<ul class="footnotes">';
   // Drupal 7 requires we use "render element" which just introduces a wrapper
   // around the old array.
