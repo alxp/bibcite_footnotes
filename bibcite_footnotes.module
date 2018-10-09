@@ -23,6 +23,78 @@ function bibcite_footnotes_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
+function bibcite_footnotes_preprocess_footnote_list(&$variables) {
+
+  // Drupal 7 requires we use "render element" which just introduces a wrapper
+  // around the old array.
+  // $footnotes = $footnotes['footnotes'];
+  // loop through the footnotes.
+  $footnotes = $variables['footnotes'];
+  foreach ($footnotes as $fn) {
+    if (!is_array($fn['ref_id'])) {
+      // Output normal footnote.
+      $item = [
+        '#wrapper_attributes' => [
+          'class' => "footnote",
+          'id' => $fn['fn_id'],
+        ],
+        '#value' => [
+          [
+            '#type' => 'link',
+            '#title' => $fn['value'],
+            '#href' => "#" . $fn['ref_id'],
+          ],
+        ],
+      ];
+      preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
+      $reference_entity_id = $matches[1];
+      if (!empty($reference_entity_id)) {
+        $reference_storage = \Drupal::entityTypeManager()
+          ->getStorage('bibcite_reference')
+          ->load($reference_entity_id);
+
+        $build = $view_builder->view($reference_storage, 'citation');
+        $render = render($build);
+
+        $str .= $render . "</li>\n";
+      }
+      else {
+        $str .= $fn['text'] . "</li>\n";
+      }
+    }
+    else {
+      // Output footnote that has more than one reference to it in the body.
+      // The only difference is to insert backlinks to all references.
+      // Helper: we need to enumerate a, b, c...
+      $abc = str_split("abcdefghijklmnopqrstuvwxyz");
+      $i = 0;
+
+      $str .= '<li class="footnote" id="' . $fn['fn_id'] . '"><a href="#' . $fn['ref_id'][0] . '" class="footnote-label">' . $fn['value'] . '.</a> ';
+      foreach ($fn['ref_id'] as $ref) {
+        $str .= '<a class="footnote-multi" href="#' . $ref . '">' . $abc[$i] . '.</a> ';
+        $i++;
+      }
+      $str .= $fn['text'] . "</li>\n";
+    }
+  }
+
+
+  $variables['notes'] = "Note 1";
+  $element = [
+    '#theme' => 'item_list',
+    '#wrapper_attributes' => [
+      'class' => 'container',
+    ],
+    '#items' => [
+
+      'Text inside li item',
+      'Second item'
+
+    ],
+  ];
+  $variables['references'] = $element;
+}
+
 /**
  * Implements hook_theme().
  */
@@ -46,7 +118,7 @@ function bibcite_footnotes_theme_registry_alter(&$theme_registry) {
 function bibcite_footnotes_theme_footnote_list($footnotes) {
   // @todo: change this ugly array for arguments in the function.
   $footnotes = $footnotes['footnotes']['#footnotes'];
-  ksm($footnotes);
+
   $notes = [
     '#theme' => 'item_list',
     '#list_type' => 'ul',
