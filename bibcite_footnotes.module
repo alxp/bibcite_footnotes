@@ -30,15 +30,19 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   // $footnotes = $footnotes['footnotes'];
   // loop through the footnotes.
   $footnotes = $variables['footnotes'];
+  $notes = [];
+  $references = [];
   foreach ($footnotes as $fn) {
     if (!is_array($fn['ref_id'])) {
       // Output normal footnote.
       $item = [
         '#wrapper_attributes' => [
-          'class' => "footnote",
           'id' => $fn['fn_id'],
         ],
-        '#value' => [
+        '#attributes' => [
+          '#class' => 'footnote',
+        ],
+        '#children' => [
           [
             '#type' => 'link',
             '#title' => $fn['value'],
@@ -52,14 +56,18 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
         $reference_storage = \Drupal::entityTypeManager()
           ->getStorage('bibcite_reference')
           ->load($reference_entity_id);
-
-        $build = $view_builder->view($reference_storage, 'citation');
-        $render = render($build);
-
-        $str .= $render . "</li>\n";
+        $item['#children'][] = [
+          '#type' => 'bibcite_citation',
+          '#data' => $reference_storage,
+        ];
+        $references[] = $item;
       }
       else {
-        $str .= $fn['text'] . "</li>\n";
+        $item['#value'][] = [
+          '#type' => '#markup',
+          '#markup' =>$fn['text'],
+        ];
+        $notes[] = $item;
       }
     }
     else {
@@ -68,31 +76,58 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
       // Helper: we need to enumerate a, b, c...
       $abc = str_split("abcdefghijklmnopqrstuvwxyz");
       $i = 0;
+      $item = [
+        '#wrapper_attributes' => [
+          'class' => "footnote",
+          'id' => $fn['fn_id'],
+        ],
+        '#value' => [
+          [
+            '#type' => 'link',
+            '#title' => $fn['value'],
+            '#href' => "#" . $fn['ref_id'][0],
+            '#attributes' => [
+              '#class' => 'footnote-label',
+            ],
+          ],
+        ],
+      ];
 
-      $str .= '<li class="footnote" id="' . $fn['fn_id'] . '"><a href="#' . $fn['ref_id'][0] . '" class="footnote-label">' . $fn['value'] . '.</a> ';
       foreach ($fn['ref_id'] as $ref) {
-        $str .= '<a class="footnote-multi" href="#' . $ref . '">' . $abc[$i] . '.</a> ';
+        $item['#value'][] = [
+          '#type' => 'link',
+          '#title' => $abc[$i],
+          '#href' => '#' . $ref,
+          '#attributes' => [
+            '#class' => 'footnote-multi',
+          ],
+        ];
         $i++;
       }
-      $str .= $fn['text'] . "</li>\n";
+      $item['#value'][] = $fn['text'];
+      $references[] = $item;
     }
+
   }
 
-
-  $variables['notes'] = "Note 1";
-  $element = [
+  $notes_list = [
     '#theme' => 'item_list',
     '#wrapper_attributes' => [
       'class' => 'container',
     ],
-    '#items' => [
+    '#items' => $notes,
 
-      'Text inside li item',
-      'Second item'
-
-    ],
   ];
-  $variables['references'] = $element;
+  $variables['notes'] = $notes_list;
+  $reference_list = [
+    '#theme' => 'item_list',
+    '#wrapper_attributes' => [
+      'class' => 'container',
+    ],
+    '#items' => $references,
+  ];
+  $variables['references'] = $reference_list;
+  ksm($variables);
 }
 
 /**
@@ -113,6 +148,7 @@ function bibcite_footnotes_theme_registry_alter(&$theme_registry) {
   $theme_registry['footnote_list']['template'] = 'footnote-list';
   $theme_registry['footnote_list']['variables']['notes'] = [];
   $theme_registry['footnote_list']['variables']['references'] = [];
+  $theme_registry['footnote_list']['variables']['footnotes'] = [];
 }
 
 function bibcite_footnotes_theme_footnote_list($footnotes) {
