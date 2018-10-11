@@ -7,6 +7,7 @@
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+use Drupal\Core\Link;
 
 /**
  * Implements hook_help().
@@ -31,38 +32,60 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   // $footnotes = $footnotes['footnotes'];
   // loop through the footnotes.
   $footnotes = $variables['footnotes'];
-  $notes = [];
-  $references = [];
+  $notes = [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'Notes',
+    '#attributes' => ['class' => 'footnotes'],
+    '#wrapper_attributes' => ['class' => 'container'],
+  ];
+
+  $references= [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'References',
+    '#attributes' => ['class' => 'footnotes'],
+    '#wrapper_attributes' => ['class' => 'container'],
+  ];
+
   $view_builder = \Drupal::entityTypeManager()->getViewBuilder('bibcite_reference');
 
   foreach ($footnotes as $fn) {
     if (!is_array($fn['ref_id'])) {
       // Output normal footnote.
       $item = [
-        'id' => $fn['fn_id'],
+        '#id' => $fn['fn_id'],
 
       ];
-      $url = Url::fromUserInput('#' . $fn['ref_id']);
 
-      $item['link_text'] = $fn['value'];
-      $item['link_url'] = $url->toString();
+      $url = Url::fromUserInput('#' . $fn['ref_id'], ['attributes' => ['id' => $fn['fn_id']]]);
+
+//      $url->setOptions($link_options);
+
+      $link = Link::fromTextAndUrl($fn['value'], $url);
+
+      $link = $link->toString();
+
+
       preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
       $reference_entity_id = $matches[1];
       if (!empty($reference_entity_id)) {
         $reference_storage = \Drupal::entityTypeManager()
           ->getStorage('bibcite_reference')
           ->load($reference_entity_id);
-
+        $item['#attributes'] = [
+          'class' => ['footnote'],
+        ];
         $build = $view_builder->view($reference_storage, 'citation');
         $render = render($build);
 
-        $item['citation'] = $render;
-        $references[] = $item;
+        $item['#markup'] = $link . ' ' . $render;
+        $references['#items'] = $item;
       }
       else {
-        $item['text'] = $fn['text'];
+        $item['#markup'] = $link . ' ' . $fn['text'];
 
-        $notes[] = $item;
+        $notes['#items'][] = $item;
       }
     }
     else {
@@ -106,7 +129,7 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   }
 
   $variables['notes'] = $notes;
-
+ksm($notes);
   $variables['references'] = $references;
 
 }

@@ -16,17 +16,12 @@
 #}
 
 <div{{ attributes.addClass('footnote-list') }}>
-    Sup my pals.
     <h3>Notes</h3>
-    <ul{{ attributes.addClass('notes') }}>
-        {%  for note in notes %}
-            <li{{ item.attributes.addClass('footnote') }} id="{{ note.id }}"><a href={{ note.link_url }}>{{ note.link_text }}</a> {{ note.text }}</li>
-        {% endfor %}
-    </ul>
+
+
+    {{ notes }}
+
+
     <h3>References</h3>
-    <ul{{ attributes.addClass('footnotes') }}>
-        {%  for reference in references %}
-            <li{{ item.attributes.addClass('footnote') }} id="{{ reference.id }}"><a href={{ reference.link_url }}>{{ reference.link_text }}</a> {{ reference.citation }}</li>
-        {% endfor %}
-    </ul>
+    {{  references }}
 </div>
