@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
@@ -32,41 +33,35 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   $footnotes = $variables['footnotes'];
   $notes = [];
   $references = [];
+  $view_builder = \Drupal::entityTypeManager()->getViewBuilder('bibcite_reference');
+
   foreach ($footnotes as $fn) {
     if (!is_array($fn['ref_id'])) {
       // Output normal footnote.
       $item = [
-        '#wrapper_attributes' => [
-          'id' => $fn['fn_id'],
-        ],
-        '#attributes' => [
-          '#class' => 'footnote',
-        ],
-        '#children' => [
-          [
-            '#type' => 'link',
-            '#title' => $fn['value'],
-            '#href' => "#" . $fn['ref_id'],
-          ],
-        ],
+        'id' => $fn['fn_id'],
+
       ];
+      $url = Url::fromUserInput('#' . $fn['ref_id']);
+
+      $item['link_text'] = $fn['value'];
+      $item['link_url'] = $url->toString();
       preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
       $reference_entity_id = $matches[1];
       if (!empty($reference_entity_id)) {
         $reference_storage = \Drupal::entityTypeManager()
           ->getStorage('bibcite_reference')
           ->load($reference_entity_id);
-        $item['#children'][] = [
-          '#type' => 'bibcite_citation',
-          '#data' => $reference_storage,
-        ];
+
+        $build = $view_builder->view($reference_storage, 'citation');
+        $render = render($build);
+
+        $item['citation'] = $render;
         $references[] = $item;
       }
       else {
-        $item['#value'][] = [
-          '#type' => '#markup',
-          '#markup' =>$fn['text'],
-        ];
+        $item['text'] = $fn['text'];
+
         $notes[] = $item;
       }
     }
@@ -99,7 +94,7 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
           '#title' => $abc[$i],
           '#href' => '#' . $ref,
           '#attributes' => [
-            '#class' => 'footnote-multi',
+            'class' => 'footnote-multi',
           ],
         ];
         $i++;
@@ -110,24 +105,10 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
 
   }
 
-  $notes_list = [
-    '#theme' => 'item_list',
-    '#wrapper_attributes' => [
-      'class' => 'container',
-    ],
-    '#items' => $notes,
+  $variables['notes'] = $notes;
 
-  ];
-  $variables['notes'] = $notes_list;
-  $reference_list = [
-    '#theme' => 'item_list',
-    '#wrapper_attributes' => [
-      'class' => 'container',
-    ],
-    '#items' => $references,
-  ];
-  $variables['references'] = $reference_list;
-  ksm($variables);
+  $variables['references'] = $references;
+
 }
 
 /**
