@@ -1,0 +1,5 @@
+reference_footnote:
+  version: VERSION
+  css:
+    theme:
+      css/reference_footnote.css: {}

@@ -1,0 +1,8 @@
+
+.footnotes .footnote a {
+  float: left;
+}
+.footnotes .footnote a::after {
+  content: " ";
+  white-space: pre;
+}

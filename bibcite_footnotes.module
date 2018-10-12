@@ -46,26 +46,24 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
     '#title' => 'References',
     '#attributes' => ['class' => 'footnotes'],
     '#wrapper_attributes' => ['class' => 'container'],
-  ];
 
-  $view_builder = \Drupal::entityTypeManager()->getViewBuilder('bibcite_reference');
+  ];
+  $references['#attached']['library'][] = 'bibcite_footnotes/reference_footnote';
+
+  $serializer = \Drupal::service('serializer');
 
   foreach ($footnotes as $fn) {
     if (!is_array($fn['ref_id'])) {
       // Output normal footnote.
       $item = [
         '#id' => $fn['fn_id'],
-
+        '#wrapper_attributes' => [
+          'class' => ['footnote'],
+        ],
       ];
 
       $url = Url::fromUserInput('#' . $fn['ref_id'], ['attributes' => ['id' => $fn['fn_id']]]);
-
-//      $url->setOptions($link_options);
-
-      $link = Link::fromTextAndUrl($fn['value'], $url);
-
-      $link = $link->toString();
-
+      $link = Link::fromTextAndUrl($fn['value'], $url)->toRenderable();
 
       preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
       $reference_entity_id = $matches[1];
@@ -73,17 +71,17 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
         $reference_storage = \Drupal::entityTypeManager()
           ->getStorage('bibcite_reference')
           ->load($reference_entity_id);
-        $item['#attributes'] = [
-          'class' => ['footnote'],
-        ];
-        $build = $view_builder->view($reference_storage, 'citation');
+        $data = $serializer->normalize($reference_storage, 'csl');
+        $build = [$link, ['#theme' => 'bibcite_citation', '#data' => $data]];
         $render = render($build);
+        $item['#markup'] = $render;
+        $references['#items'][] = $item;
 
-        $item['#markup'] = $link . ' ' . $render;
-        $references['#items'] = $item;
       }
       else {
-        $item['#markup'] = $link . ' ' . $fn['text'];
+        $build = [$link, ['#type' => 'markup', '#markup' => ' ' . $fn['text']]];
+        $render = render($build);
+        $item['#markup'] = $render;
 
         $notes['#items'][] = $item;
       }
@@ -129,7 +127,7 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   }
 
   $variables['notes'] = $notes;
-ksm($notes);
+
   $variables['references'] = $references;
 
 }
