@@ -4,9 +4,9 @@
             requires : [ 'fakeobjects','dialog' ],
             icons: 'reference_footnotes',
             onLoad: function() {
-                var icon_path = window.location.origin + this.path + 'images/fn_icon2.png';
+                var icon_path = window.location.origin + this.path + 'images/fn_icon3.png';
                 CKEDITOR.addCss(
-                    '.cke_footnote' +
+                    '.cke_reference_footnote' +
                     '{' +
                     'background-image: url(' + CKEDITOR.getUrl( icon_path ) + ');' +
                     'background-position: center center;' +
@@ -56,7 +56,15 @@
 
                 editor.on( 'doubleclick', function( evt ) {
                     if ( CKEDITOR.plugins.footnotes.getSelectedFootnote( editor ) )
-                        evt.data.dialog = 'editreferencefootnotes';
+                    {
+                        if ( CKEDITOR.plugins.footnotes.getSelectedFootnote( editor ).getAttribute('class') == 'cke_reference_footnote') {
+                            evt.data.dialog = 'editreferencefootnotes';
+                        }
+                        else {
+                            evt.data.dialog = 'editfootnotes';
+                        }
+
+                    }
                 });
 
                 CKEDITOR.dialog.add( 'createreferencefootnotes', this.path + 'dialogs/footnotes.js' );
@@ -70,7 +78,7 @@
                     dataFilter.addRules({
                         elements: {
                             fn: function(element ) {
-                                return editor.createFakeParserElement( element, 'cke_footnote', 'hiddenfield', false );
+                                return editor.createFakeParserElement( element, 'cke_reference_footnote', 'hiddenfield', false );
                             }
                         }
                     });
@@ -93,7 +101,7 @@ CKEDITOR.plugins.reference_footnotes = {
         if (value && value.length > 0 )
             realElement.setAttribute('value',value);
 
-        var fakeElement = editor.createFakeElement( realElement , 'cke_footnote', 'hiddenfield', false );
+        var fakeElement = editor.createFakeElement( realElement , 'cke_reference_footnote', 'hiddenfield', false );
         editor.insertElement(fakeElement);
     },
 
