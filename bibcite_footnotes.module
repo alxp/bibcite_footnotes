@@ -53,38 +53,20 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
   $serializer = \Drupal::service('serializer');
 
   foreach ($footnotes as $fn) {
+    $item = [
+      '#id' => $fn['fn_id'],
+      '#wrapper_attributes' => [
+        'class' => ['footnote'],
+      ],
+    ];
+    $build = [];
     if (!is_array($fn['ref_id'])) {
       // Output normal footnote.
-      $item = [
-        '#id' => $fn['fn_id'],
-        '#wrapper_attributes' => [
-          'class' => ['footnote'],
-        ],
-      ];
+
 
       $url = Url::fromUserInput('#' . $fn['ref_id'], ['attributes' => ['id' => $fn['fn_id']]]);
       $link = Link::fromTextAndUrl($fn['value'], $url)->toRenderable();
-
-      preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
-      $reference_entity_id = $matches[1];
-      if (!empty($reference_entity_id)) {
-        $reference_storage = \Drupal::entityTypeManager()
-          ->getStorage('bibcite_reference')
-          ->load($reference_entity_id);
-        $data = $serializer->normalize($reference_storage, 'csl');
-        $build = [$link, ['#theme' => 'bibcite_citation', '#data' => $data]];
-        $render = render($build);
-        $item['#markup'] = $render;
-        $references['#items'][] = $item;
-
-      }
-      else {
-        $build = [$link, ['#type' => 'markup', '#markup' => ' ' . $fn['text']]];
-        $render = render($build);
-        $item['#markup'] = $render;
-
-        $notes['#items'][] = $item;
-      }
+      $build[] = $link;
     }
     else {
       // Output footnote that has more than one reference to it in the body.
@@ -92,38 +74,39 @@ function bibcite_footnotes_preprocess_footnote_list(&$variables) {
       // Helper: we need to enumerate a, b, c...
       $abc = str_split("abcdefghijklmnopqrstuvwxyz");
       $i = 0;
-      $item = [
-        '#wrapper_attributes' => [
-          'class' => "footnote",
-          'id' => $fn['fn_id'],
-        ],
-        '#value' => [
-          [
-            '#type' => 'link',
-            '#title' => $fn['value'],
-            '#href' => "#" . $fn['ref_id'][0],
-            '#attributes' => [
-              '#class' => 'footnote-label',
-            ],
-          ],
-        ],
-      ];
+
+      $url = Url::fromUserInput('#' . $fn['ref_id'][0], ['attributes' => ['id' => $fn['fn_id']]]);
+      $build['link'] = Link::fromTextAndUrl($fn['value'], $url)->toRenderable();
 
       foreach ($fn['ref_id'] as $ref) {
-        $item['#value'][] = [
-          '#type' => 'link',
-          '#title' => $abc[$i],
-          '#href' => '#' . $ref,
-          '#attributes' => [
-            'class' => 'footnote-multi',
-          ],
-        ];
+        $url = Url::fromUserInput('#' . $fn['ref_id'][$ref], ['attributes' => ['id' => $fn['fn_id'], 'class' => 'footnote-multi']]);
+        $build['link' . $abc[$i]] = Link::fromTextAndUrl($abc[$i], $url)->toRenderable();
+
         $i++;
       }
-      $item['#value'][] = $fn['text'];
-      $references[] = $item;
+
     }
 
+    preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
+    $reference_entity_id = $matches[1];
+    if (!empty($reference_entity_id)) {
+      $reference_storage = \Drupal::entityTypeManager()
+        ->getStorage('bibcite_reference')
+        ->load($reference_entity_id);
+      $data = $serializer->normalize($reference_storage, 'csl');
+      $build = [$link, ['#theme' => 'bibcite_citation', '#data' => $data]];
+      $render = render($build);
+      $item['#markup'] = $render;
+      $references['#items'][] = $item;
+
+    }
+    else {
+      $build = [$link, ['#type' => 'markup', '#markup' => ' ' . $fn['text']]];
+      $render = render($build);
+      $item['#markup'] = $render;
+
+      $notes['#items'][] = $item;
+    }
   }
 
   $variables['notes'] = $notes;

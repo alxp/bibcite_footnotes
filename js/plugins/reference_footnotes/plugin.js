@@ -63,9 +63,10 @@
                         else {
                             evt.data.dialog = 'editfootnotes';
                         }
+                        
 
                     }
-                });
+                }, null, null, 1); // Ensure this event fires after the 'footnotes' event so we can decide which dialog to show.
 
                 CKEDITOR.dialog.add( 'createreferencefootnotes', this.path + 'dialogs/footnotes.js' );
                 CKEDITOR.dialog.add( 'editreferencefootnotes', this.path + 'dialogs/footnotes.js' );
@@ -78,7 +79,9 @@
                     dataFilter.addRules({
                         elements: {
                             fn: function(element ) {
-                                return editor.createFakeParserElement( element, 'cke_reference_footnote', 'hiddenfield', false );
+                                if (element.getFirst().value.startsWith('[bibcite_reference:')) {
+                                    return editor.createFakeParserElement(element, 'cke_reference_footnote', 'hiddenfield', false);
+                                }
                             }
                         }
                     });
