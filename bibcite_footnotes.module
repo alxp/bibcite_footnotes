@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
 
 /**
  * Implements hook_help().
@@ -23,6 +25,96 @@ function bibcite_footnotes_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
+function bibcite_footnotes_preprocess_footnote_list(&$variables) {
+
+  // Drupal 7 requires we use "render element" which just introduces a wrapper
+  // around the old array.
+  // $footnotes = $footnotes['footnotes'];
+  // loop through the footnotes.
+  $footnotes = $variables['footnotes'];
+  $notes = [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'Notes',
+    '#attributes' => ['class' => 'footnotes'],
+    '#wrapper_attributes' => ['class' => 'container'],
+  ];
+
+  $references= [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'References',
+    '#attributes' => ['class' => 'footnotes'],
+    '#wrapper_attributes' => ['class' => 'container'],
+
+  ];
+  $references['#attached']['library'][] = 'bibcite_footnotes/reference_footnote';
+
+  $serializer = \Drupal::service('serializer');
+
+  foreach ($footnotes as $fn) {
+    $item = [
+      '#id' => $fn['fn_id'],
+      '#wrapper_attributes' => [
+        'class' => ['footnote'],
+      ],
+    ];
+    $build = [];
+    if (!is_array($fn['ref_id'])) {
+      // Output normal footnote.
+
+
+      $url = Url::fromUserInput('#' . $fn['ref_id'], ['attributes' => ['id' => $fn['fn_id'], 'class' => 'footnote-link']]);
+      $link = Link::fromTextAndUrl($fn['value'], $url)->toRenderable();
+      $build[] = $link;
+    }
+    else {
+      // Output footnote that has more than one reference to it in the body.
+      // The only difference is to insert backlinks to all references.
+      // Helper: we need to enumerate a, b, c...
+      $abc = str_split("abcdefghijklmnopqrstuvwxyz");
+      $i = 0;
+
+      $url = Url::fromUserInput('#' . $fn['ref_id'][0], ['attributes' => ['id' => $fn['fn_id'], 'class' => 'footnote-link']]);
+      $build[] = Link::fromTextAndUrl($fn['value'], $url)->toRenderable();
+
+      foreach ($fn['ref_id'] as $ref) {
+        $url = Url::fromUserInput( '#' . $ref, ['attributes' => ['id' => $fn['fn_id'], 'class' => 'footnote-multi']]);
+        $build[] = Link::fromTextAndUrl($abc[$i], $url)->toRenderable();
+
+        $i++;
+      }
+
+    }
+
+    preg_match('/\[bibcite_reference:(\d*)\]/', $fn['text'], $matches);
+    $reference_entity_id = $matches[1];
+    if (!empty($reference_entity_id)) {
+      $reference_storage = \Drupal::entityTypeManager()
+        ->getStorage('bibcite_reference')
+        ->load($reference_entity_id);
+      $data = $serializer->normalize($reference_storage, 'csl');
+      $build[] = ['#theme' => 'bibcite_citation', '#data' => $data];
+      $render = render($build);
+      $item['#markup'] = $render;
+      $references['#items'][] = $item;
+
+    }
+    else {
+      $build[] = ['#type' => 'markup', '#markup' => ' ' . $fn['text']];
+      $render = render($build);
+      $item['#markup'] = $render;
+
+      $notes['#items'][] = $item;
+    }
+  }
+
+  $variables['notes'] = $notes;
+
+  $variables['references'] = $references;
+
+}
+
 /**
  * Implements hook_theme().
  */
@@ -35,12 +127,28 @@ function bibcite_footnotes_theme() {
 }
 
 function bibcite_footnotes_theme_registry_alter(&$theme_registry) {
-  $theme_registry['footnote_list']['function'] = 'bibcite_footnotes_theme_footnote_list';
+  unset($theme_registry['footnote_list']['function']);
+//  $theme_registry['footnote_list']['function'] = 'bibcite_footnotes_theme_footnote_list';
+  $theme_registry['footnote_list']['path'] = drupal_get_path('module', 'bibcite_footnotes') . '/templates';
+  $theme_registry['footnote_list']['template'] = 'footnote-list';
+  $theme_registry['footnote_list']['variables']['notes'] = [];
+  $theme_registry['footnote_list']['variables']['references'] = [];
+  $theme_registry['footnote_list']['variables']['footnotes'] = [];
 }
 
 function bibcite_footnotes_theme_footnote_list($footnotes) {
   // @todo: change this ugly array for arguments in the function.
   $footnotes = $footnotes['footnotes']['#footnotes'];
+
+  $notes = [
+    '#theme' => 'item_list',
+    '#list_type' => 'ul',
+    '#title' => 'Notes',
+    '#attributes' => ['class' => ''],
+    '#wrapper_attributes' => ['class' => 'container'],
+  ];
+
+//  return drupal_render($content);
   $str = '<ul class="footnotes">';
   // Drupal 7 requires we use "render element" which just introduces a wrapper
   // around the old array.

@@ -23,7 +23,13 @@ Installation
 ------------
 
 Install and set up the Footnotes module as per its installation instructions, including
-enabling and configuring the Footnotes text filter.
+enabling and configuring the Footnotes text filter. If the 'Allowed HTML tags' filter is enabled
+you will need to add the following HTML tags for the reference footnotes to display properly.:
+
+```html
+    <a class href id> <div class id> <span class id> <ul class id type> 
+	<ol class id start type> <sup> <li class id>
+```
 
 Configuration
 -------------

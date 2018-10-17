@@ -1,9 +1,15 @@
 name: 'BibCite Footnotes'
 type: module
 description: 'Inline footnote links for BibCite References'
-core: 8.x
+# core: 8.x
 package: 'Bibliography & Citation'
 dependencies:
   - bibcite:bibcite
   - bibcite:bibcite_entity
   - footnotes:footnotes
+
+# Information added by Drupal.org packaging script on 2018-07-30
+version: '8.x-1.0-alpha5'
+core: '8.x'
+project: 'bibcite_footnotes'
+datestamp: 1532941092

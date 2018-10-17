@@ -5,7 +5,16 @@
             icons: 'reference_footnotes',
             onLoad: function() {
                 var icon_path = window.location.origin + this.path + 'images/fn_icon2.png';
+                var ref_icon_path = window.location.origin + this.path + 'images/fn_icon3.png';
                 CKEDITOR.addCss(
+                    '.cke_reference_footnote' +
+                    '{' +
+                    'background-image: url(' + CKEDITOR.getUrl( ref_icon_path ) + ');' +
+                    'background-position: center center;' +
+                    'background-repeat: no-repeat;' +
+                    'width: 16px;' +
+                    'height: 16px;' +
+                    '}' +
                     '.cke_footnote' +
                     '{' +
                     'background-image: url(' + CKEDITOR.getUrl( icon_path ) + ');' +
@@ -14,14 +23,15 @@
                     'width: 16px;' +
                     'height: 16px;' +
                     '}'
+
                 );
             },
             init: function( editor )
             {
-                editor.addCommand('createfootnotes', new CKEDITOR.dialogCommand('createfootnotes', {
+                editor.addCommand('createreferencefootnotes', new CKEDITOR.dialogCommand('createreferencefootnotes', {
                     allowedContent: 'fn[value]'
                 }));
-                editor.addCommand('editfootnotes', new CKEDITOR.dialogCommand('editfootnotes', {
+                editor.addCommand('editreferencefootnotes', new CKEDITOR.dialogCommand('editreferencefootnotes', {
                     allowedContent: 'fn[value]'
                 }));
 
@@ -30,7 +40,7 @@
                 // in hook_wysiwyg_plugin().
                 editor.ui.addButton && editor.ui.addButton( 'reference_footnotes', {
                     label: Drupal.t('Add a reference footnote'),
-                    command: 'createfootnotes',
+                    command: 'createreferencefootnotes',
                     icon: 'reference_footnotes'
                 });
 
@@ -39,7 +49,7 @@
                     editor.addMenuItems({
                         footnotes: {
                             label: Drupal.t('Edit footnote'),
-                            command: 'editfootnotes',
+                            command: 'editreferencefootnotes',
                             icon: 'reference_footnotes',
                             group: 'reference_footnotes'
                         }
@@ -55,12 +65,14 @@
                 }
 
                 editor.on( 'doubleclick', function( evt ) {
-                    if ( CKEDITOR.plugins.footnotes.getSelectedFootnote( editor ) )
-                        evt.data.dialog = 'editfootnotes';
-                });
+                    if ( CKEDITOR.plugins.reference_footnotes.getSelectedFootnote( editor ) )
+                    {
+                      evt.data.dialog = 'editreferencefootnotes';
+                    }
+                }, null, null, 1); // Ensure this event fires after the 'footnotes' event so we can decide which dialog to show.
 
-                CKEDITOR.dialog.add( 'createfootnotes', this.path + 'dialogs/footnotes.js' );
-                CKEDITOR.dialog.add( 'editfootnotes', this.path + 'dialogs/footnotes.js' );
+                CKEDITOR.dialog.add( 'createreferencefootnotes', this.path + 'dialogs/footnotes.js' );
+                CKEDITOR.dialog.add( 'editreferencefootnotes', this.path + 'dialogs/footnotes.js' );
             },
             afterInit : function( editor ) {
                 var dataProcessor = editor.dataProcessor,
@@ -70,7 +82,9 @@
                     dataFilter.addRules({
                         elements: {
                             fn: function(element ) {
-                                return editor.createFakeParserElement( element, 'cke_footnote', 'hiddenfield', false );
+
+                              return editor.createFakeParserElement(element, 'cke_reference_footnote', 'hiddenfield', false);
+
                             }
                         }
                     });
@@ -93,7 +107,7 @@ CKEDITOR.plugins.reference_footnotes = {
         if (value && value.length > 0 )
             realElement.setAttribute('value',value);
 
-        var fakeElement = editor.createFakeElement( realElement , 'cke_footnote', 'hiddenfield', false );
+        var fakeElement = editor.createFakeElement( realElement , 'cke_reference_footnote', 'hiddenfield', false );
         editor.insertElement(fakeElement);
     },
 
