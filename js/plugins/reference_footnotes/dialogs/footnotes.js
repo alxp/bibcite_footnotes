@@ -11,22 +11,31 @@
                     title: Drupal.t('Add a reference footnote'),
                     elements:
                         [
-                            {
-                                id: 'reference_footnote',
-                                type: 'select',
-                                items: editor.config.referenceFootnotes_list,
-                                label: Drupal.t('Reference Footnote item:'),
-                                setup: function (element) {
-                                    if (isEdit)
-                                        this.setValue(element.getText());
-                                }
-                            },
+                          {
+                            id: 'reference_footnote',
+                            type: 'select',
+                            items: editor.config.referenceFootnotes_list,
+                            label: Drupal.t('Reference Footnote item:'),
+                            setup: function (element) {
+                              if (isEdit)
+                                this.setValue(element.getText());
+                            }
+                          },
+                          {
+                            id: 'footnote',
+                            type: 'text',
+                            label: Drupal.t('Or add free-form footnote text :'),
+                            setup: function (element) {
+                              if (isEdit)
+                                this.setValue(element.getText());
+                            }
+                          },
                             {
                                 id: 'value',
                                 type: 'text',
                                 label: Drupal.t('Value :'),
                                 labelLayout: 'horizontal',
-                                style: 'float:left;width:100px;',
+                                style: 'float:left;width:200px;',
                                 setup: function (element) {
                                     if (isEdit)
                                         this.setValue(element.getAttribute('value'));
@@ -43,7 +52,7 @@
                 this.setupContent( this.realObj );
             },
             onOk : function() {
-                CKEDITOR.plugins.reference_footnotes.createFootnote( editor, this.realObj, this.getValueOf('info', 'reference_footnote'), this.getValueOf('info', 'value'));
+                CKEDITOR.plugins.reference_footnotes.createFootnote( editor, this.realObj, this.getValueOf('info', 'footnote'), this.getValueOf('info', 'value'));
                 delete this.fakeObj;
                 delete this.realObj;
             }
