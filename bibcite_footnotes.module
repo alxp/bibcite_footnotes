@@ -194,3 +194,20 @@ function bibcite_footnotes_theme_footnote_list($footnotes) {
   return $str;
 
 }
+
+function bibcite_footnotes_form_filter_format_edit_form_alter(&$form, &$form_state, $form_id) {
+  $form['filters']['settings']['filters_footnotes']['bibcite_footnotes'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Bibliography and Citation SettingsE'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  ];
+  $form['filters']['settings']['filter_footnotes']['bibcite_footnotes']['notes_section_label'] = [
+    '#type' => 'textfield',
+    '#title' => t('Notes section title'),
+  ];
+  $form['filters']['settings']['filter_footnotes']['bibcite_footnotes']['references_section_label'] = [
+    '#type' => 'textfield',
+    '#title' => t('References section title'),
+  ];
+}
