@@ -5,6 +5,7 @@
  * Contains bibcite_footnotes.module.
  */
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Link;
@@ -204,10 +205,18 @@ function bibcite_footnotes_form_filter_format_edit_form_alter(&$form, &$form_sta
   ];
   $form['filters']['settings']['filter_footnotes']['bibcite_footnotes']['notes_section_label'] = [
     '#type' => 'textfield',
-    '#title' => t('Notes section title'),
+    '#title' => t('Notes section label'),
+    '#default_value' =>  \Drupal::config('filters.filter_footnotes.settings.bibcite_footnotes')->get('notes_section_label'),
   ];
   $form['filters']['settings']['filter_footnotes']['bibcite_footnotes']['references_section_label'] = [
     '#type' => 'textfield',
-    '#title' => t('References section title'),
+    '#title' => t('References section label'),
+    '#default_value' =>  \Drupal::config('filters.filter_footnotes.settings.bibcite_footnotes')->get('references_section_label'),
   ];
+  $form['actions']['submit']['#submit'][] = 'bibcite_footnotes_filter_settings_form_submit';
+}
+
+function bibcite_footnotes_filter_settings_form_submit($form, FormStateInterface $form_state) {
+  $config = \Drupal::service('config.factory')->getEditable('filters.filter_footnotes.settings.bibcite_footnotes');
+  //$config->set('notes_section_label') =
 }
